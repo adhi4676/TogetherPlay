@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User profile data
+    match /users/{userId} {
+      // Anyone authenticated can read user profile summaries (for displaying player cards & lobby)
+      allow read: if request.auth != null;
+      // Only the authenticated user can update their own profile & stats
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Multiplayer Game Rooms
+    match /rooms/{roomId} {
+      // Authenticated users can read room metadata
+      allow read: if request.auth != null;
+      // Any authenticated user can create a room
+      allow create: if request.auth != null;
+      // Host or Guest can update room status / select game / toggle ready
+      allow update: if request.auth != null && (
+        resource.data.host.id == request.auth.uid ||
+        (resource.data.guest != null && resource.data.guest.id == request.auth.uid) ||
+        resource.data.guest == null // Joining room as guest
+      );
+      // Only host can delete/close room
+      allow delete: if request.auth != null && resource.data.host.id == request.auth.uid;
+
+      // Messages Subcollection for Live Room Chat
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update, delete: if false;
+      }
+
+      // Game States Subcollection for Real-time Game Sync
+      match /gameState/{stateId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // Match history & scores
+    match /scores/{scoreId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+    }
+  }
+}
