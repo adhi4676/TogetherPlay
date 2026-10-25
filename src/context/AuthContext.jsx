@@ -36,25 +36,25 @@ export const AuthProvider = ({ children }) => {
     history: []
   });
 
-  // Load local user if not using live Firebase
   const loadLocalUser = () => {
     try {
-      const savedUser = localStorage.getItem('tp_user');
+      const sessionUser = sessionStorage.getItem('tp_session_user');
       const savedStats = localStorage.getItem('tp_stats');
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
+
+      if (sessionUser) {
+        setCurrentUser(JSON.parse(sessionUser));
       } else {
-        // Auto-create a guest profile for frictionless testing
+        // Auto-create a unique guest profile for this tab/device
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const randomAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)].id;
         const defaultGuest = {
-          uid: `player_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          uid: `player_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           displayName: `Player_${randomNum}`,
           email: `guest${randomNum}@togetherplay.gg`,
           avatar: randomAvatar,
           isGuest: true
         };
-        localStorage.setItem('tp_user', JSON.stringify(defaultGuest));
+        sessionStorage.setItem('tp_session_user', JSON.stringify(defaultGuest));
         setCurrentUser(defaultGuest);
       }
 
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       setCurrentUser(profile);
-      localStorage.setItem('tp_user', JSON.stringify(profile));
+      sessionStorage.setItem('tp_session_user', JSON.stringify(profile));
       return profile;
     } else {
       // Local account simulation
@@ -148,7 +148,7 @@ export const AuthProvider = ({ children }) => {
         isGuest: false
       };
       setCurrentUser(localUser);
-      localStorage.setItem('tp_user', JSON.stringify(localUser));
+      sessionStorage.setItem('tp_session_user', JSON.stringify(localUser));
       return localUser;
     }
   };
@@ -176,7 +176,7 @@ export const AuthProvider = ({ children }) => {
         isGuest: false
       };
       setCurrentUser(profile);
-      localStorage.setItem('tp_user', JSON.stringify(profile));
+      sessionStorage.setItem('tp_session_user', JSON.stringify(profile));
       return profile;
     } else {
       // Local login fallback
@@ -188,7 +188,7 @@ export const AuthProvider = ({ children }) => {
         isGuest: false
       };
       setCurrentUser(localUser);
-      localStorage.setItem('tp_user', JSON.stringify(localUser));
+      sessionStorage.setItem('tp_session_user', JSON.stringify(localUser));
       return localUser;
     }
   };
@@ -209,7 +209,7 @@ export const AuthProvider = ({ children }) => {
           isGuest: true
         };
         setCurrentUser(profile);
-        localStorage.setItem('tp_user', JSON.stringify(profile));
+        sessionStorage.setItem('tp_session_user', JSON.stringify(profile));
         return profile;
       } catch (err) {
         console.warn('Anonymous sign-in failed, continuing with local guest:', err);
@@ -224,7 +224,7 @@ export const AuthProvider = ({ children }) => {
       isGuest: true
     };
     setCurrentUser(guestProfile);
-    localStorage.setItem('tp_user', JSON.stringify(guestProfile));
+    sessionStorage.setItem('tp_session_user', JSON.stringify(guestProfile));
     return guestProfile;
   };
 
